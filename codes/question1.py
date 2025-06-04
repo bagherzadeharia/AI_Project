@@ -1,6 +1,6 @@
 from collections import deque
 
-def validate_grid(grid):
+def gridValidation(grid):
     if len(grid) != 5:
         return False
     if any(len(row) != 5 for row in grid):
@@ -11,10 +11,10 @@ def validate_grid(grid):
                 return False
     return True
 
-def bfs_shortest_path(grid):
-    if not validate_grid(grid):
+def BFS_Algorithm(grid):
+    if not gridValidation(grid):
         return "Invalid input. Grid must be 5x5 with only 0s and 1s."
-    
+
     if grid[0][0] == 1 or grid[4][4] == 1:
         return "No path found. Start or end position is blocked."
     
@@ -39,13 +39,19 @@ def bfs_shortest_path(grid):
     
     return "No path exists to the destination."
 
-grid = [
-    [0, 0, 0, 1, 0],
-    [1, 1, 0, 1, 0],
-    [0, 0, 0, 1, 0],
-    [0, 1, 1, 1, 0],
-    [0, 0, 0, 0, 0]
-]
+def main() -> None:
+    # Maybe I should rename this to 'map'
+    grid = [
+        [0, 0, 0, 1, 0],
+        [1, 1, 0, 1, 0],
+        [0, 0, 0, 1, 0],
+        [0, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0]
+    ]
 
-path = bfs_shortest_path(grid)
-print("Path found:", path)
+    path = BFS_Algorithm(grid)
+    print("Path found:", path)
+
+
+if __name__ == "__main__":
+    main()
