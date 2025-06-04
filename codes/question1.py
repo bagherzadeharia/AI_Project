@@ -3,12 +3,15 @@ from collections import deque
 def gridValidation(grid):
     if len(grid) != 5:
         return False
+
     if any(len(row) != 5 for row in grid):
         return False
+
     for row in grid:
         for cell in row:
             if cell not in {0, 1}:
                 return False
+
     return True
 
 def BFS_Algorithm(grid):
@@ -40,7 +43,6 @@ def BFS_Algorithm(grid):
     return "No path exists to the destination."
 
 def main() -> None:
-    # Maybe I should rename this to 'map'
     grid = [
         [0, 0, 0, 1, 0],
         [1, 1, 0, 1, 0],

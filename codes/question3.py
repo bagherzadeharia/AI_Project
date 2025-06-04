@@ -11,6 +11,7 @@ def isValidAssignment(assignment, task, time_slot, subsystems, power_needs, powe
             for t, slot in assignment.items():
                 if slot == adj_time and subsystems[t] == current_subsystem:
                     return False
+
     return True
 
 
@@ -30,11 +31,12 @@ def backtrack(assignment, tasks, subsystems, power_needs, power_limits):
                     if result is not None:
                         return result
             break
+
     return None
 
 
 def main() -> None:
-    tasks = ['T1', 'T2', 'T3', 'T4', 'T5']
+    tasks: tuple = ('T1', 'T2', 'T3', 'T4', 'T5')
     subsystems: Dict[str, str] = {
         'T1': 'Navigation',
         'T2': 'Sampling',
@@ -49,7 +51,7 @@ def main() -> None:
         'T4': 7,
         'T5': 3
     }
-    power_limits = [10, 6, 12, 8, 10]
+    power_limits: tuple = (10, 6, 12, 8, 10)
     assignment = backtrack({}, tasks, subsystems, power_needs, power_limits)
 
     if assignment:

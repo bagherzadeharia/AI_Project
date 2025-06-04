@@ -2,13 +2,14 @@
 **By: Mahdi Shirazi & Aria Bagherzadeh**
 ***
 
-**What's in this file?**
-- Solution to each question ('codes' directory)
-- Microsoft Word Document file (.docx) about this project
+**Project Files**
+- Solution to each question ('codes' directory) in '.py' & '.ipynb' files
+- Microsoft Word Document File (.docx) about this project
 - readme.md file for configurations & modules (This file)
 
 **Configurations**
 - Python: v3.13
 
 **Used Libraries/Modules**
-- deque
+- collections
+- random

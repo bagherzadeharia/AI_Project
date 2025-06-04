@@ -167,7 +167,7 @@ def geneticAlgorithm(exposure_values, pop_size=6, generations=10, ones_count=5):
     for _ in range(generations):
         new_population = []
         best_chrom = max(population, key=lambda chrom: fitness(chrom, exposure_values))
-        new_population.append(best_chrom)  # حفظ بهترین
+        new_population.append(best_chrom)
 
         while len(new_population) < pop_size:
             parent1 = tournamentSelection(population, exposure_values)
