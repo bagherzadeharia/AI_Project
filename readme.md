@@ -2,14 +2,17 @@
 **By: Mahdi Shirazi & Aria Bagherzadeh**
 ***
 
-**Project Files**
+**What's in this Project?**
 - Python & Jupyter Notebook files for each question
-- Microsoft Word Document File (.docx) about this project
-- readme.md file for configurations & modules (This file)
+- Microsoft Word Document File (.docx) & .pdf File about this project
 
-**Minimum Configurations**
+**Minimum Configurations:**
 - Python: v3.12.6 or above
+- Pip: v25.1.1
 
-**Used Libraries/Modules**
-- collections
+**Used Libraries/Modules/Packages:**
+- sys
+- copy
+- PyQT5
 - random
+- collections (deque)

@@ -1,197 +1,90 @@
-# import random
-# import numpy as np
-#
-#
-# def initialize_population(pop_size, chrom_length, ones_count):
-#     population = []
-#     for _ in range(pop_size):
-#         chrom = [0] * chrom_length
-#         ones_indices = random.sample(range(chrom_length), ones_count)
-#         for idx in ones_indices:
-#             chrom[idx] = 1
-#         population.append(chrom)
-#     return population
-#
-#
-# def fitness(chromosome, exposure_values):
-#     return sum(chromosome[i] * exposure_values[i] for i in range(len(chromosome)))
-#
-#
-# def tournament_selection(population, exposure_values, tournament_size=3):
-#     tournament = random.sample(population, tournament_size)
-#     return max(tournament, key=lambda chrom: fitness(chrom, exposure_values))
-#
-#
-# def two_point_crossover(parent1, parent2, ones_count):
-#     length = len(parent1)
-#     point1, point2 = sorted(random.sample(range(length), 2))
-#     child1, child2 = parent1[:], parent2[:]
-#
-#     # Perform two-point crossover
-#     child1[point1:point2], child2[point1:point2] = parent2[point1:point2], parent1[point1:point2]
-#
-#     # Ensure exactly 5 ones in each child
-#     for child in [child1, child2]:
-#         ones = sum(child)
-#         if ones > ones_count:
-#             ones_indices = [i for i, x in enumerate(child) if x == 1]
-#             for _ in range(ones - ones_count):
-#                 idx = random.choice(ones_indices)
-#                 child[idx] = 0
-#                 ones_indices.remove(idx)
-#         elif ones < ones_count:
-#             zeros_indices = [i for i, x in enumerate(child) if x == 0]
-#             for _ in range(ones_count - ones):
-#                 idx = random.choice(zeros_indices)
-#                 child[idx] = 1
-#                 zeros_indices.remove(idx)
-#
-#     return child1, child2
-#
-#
-# def mutation(chromosome, ones_count):
-#     chrom = chromosome[:]
-#     ones_indices = [i for i, x in enumerate(chrom) if x == 1]
-#     zeros_indices = [i for i, x in enumerate(chrom) if x == 0]
-#     if ones_indices and zeros_indices:
-#         one_idx = random.choice(ones_indices)
-#         zero_idx = random.choice(zeros_indices)
-#         chrom[one_idx], chrom[zero_idx] = 0, 1
-#     return chrom
-#
-#
-# def genetic_algorithm(exposure_values, pop_size=10, generations=20, ones_count=5):
-#     chrom_length = len(exposure_values)
-#     population = initialize_population(pop_size, chrom_length, ones_count)
-#
-#     for _ in range(generations):
-#         new_population = []
-#
-#         # Elitism: keep the best chromosome
-#         best_chrom = max(population, key=lambda chrom: fitness(chrom, exposure_values))
-#         new_population.append(best_chrom)
-#
-#         # Generate new population
-#         while len(new_population) < pop_size:
-#             parent1 = tournament_selection(population, exposure_values)
-#             parent2 = tournament_selection(population, exposure_values)
-#             child1, child2 = two_point_crossover(parent1, parent2, ones_count)
-#
-#             # Apply mutation with probability 0.1
-#             if random.random() < 0.1:
-#                 child1 = mutation(child1, ones_count)
-#             if random.random() < 0.1:
-#                 child2 = mutation(child2, ones_count)
-#
-#             new_population.extend([child1, child2])
-#
-#         population = new_population[:pop_size]
-#
-#     best_chrom = max(population, key=lambda chrom: fitness(chrom, exposure_values))
-#     best_fitness = fitness(best_chrom, exposure_values)
-#     return best_chrom, best_fitness
-#
-#
-# def main() -> None:
-#     # Example usage
-#     exposure_values = [4, 8, 2, 7, 3, 9, 1, 6, 5, 10]
-#     best_chromosome, best_fitness = genetic_algorithm(exposure_values)
-#     print(f"Best chromosome: {best_chromosome}")
-#     print(f"Total exposure: {best_fitness}")
-#
-#
-# if __name__ == "__main__":
-#     main()
-#
 import random
+import copy
 
 
-def fitness(chromosome, exposure_values):
-    return sum(chromosome[i] * exposure_values[i] for i in range(len(chromosome)))
-
-
-def initPopulation(pop_size, chrom_length, ones_count) -> list:
+def create_initial_population(pop_size, genome_length, n_ones):
     population = []
     for _ in range(pop_size):
-        chrom = [0] * chrom_length
-        ones_indices = random.sample(range(chrom_length), ones_count)
-        for i in ones_indices:
-            chrom[i] = 1
-        population.append(chrom)
+        individual = [0] * genome_length
+        ones_indices = random.sample(range(genome_length), n_ones)
+        for idx in ones_indices:
+            individual[idx] = 1
+        population.append(individual)
     return population
 
 
-def tournamentSelection(population, exposure_values):
-    tournament = random.sample(population, 2)
-    return max(tournament, key=lambda chrom: fitness(chrom, exposure_values))
+def calculate_fitness(individual, exposures):
+    return sum(bit * exposures[i] for i, bit in enumerate(individual))
 
 
-def singlePointCrossover(parent1, parent2, ones_count):
+def tournament_selection(population, exposures, k=3):
+    contenders = random.sample(population, k)
+    return max(contenders, key=lambda ind: calculate_fitness(ind, exposures))
+
+
+def repair(child, n_ones=5):
+    while sum(child) > n_ones:
+        i = random.choice([i for i, b in enumerate(child) if b == 1])
+        child[i] = 0
+
+    while sum(child) < n_ones:
+        i = random.choice([i for i, b in enumerate(child) if b == 0])
+        child[i] = 1
+
+
+def crossover(parent1, parent2):
     length = len(parent1)
-    point = random.randint(1, length - 1)
-    child1 = parent1[:point] + parent2[point:]
-    child2 = parent2[:point] + parent1[point:]
-
-    for child in [child1, child2]:
-        ones = sum(child)
-        if ones > ones_count:
-            ones_indices = [i for i, x in enumerate(child) if x == 1]
-            for _ in range(ones - ones_count):
-                idx = random.choice(ones_indices)
-                child[idx] = 0
-                ones_indices.remove(idx)
-        elif ones < ones_count:
-            zeros_indices = [i for i, x in enumerate(child) if x == 0]
-            for _ in range(ones_count - ones):
-                idx = random.choice(zeros_indices)
-                child[idx] = 1
-                zeros_indices.remove(idx)
+    child1, child2 = copy.deepcopy(parent1), copy.deepcopy(parent2)
+    p1, p2 = sorted(random.sample(range(1, length-1), 2))
+    child1[p1:p2], child2[p1:p2] = parent2[p1:p2], parent1[p1:p2]
+    repair(child1)
+    repair(child2)
     return child1, child2
 
 
-def mutation(chromosome, ones_count):
-    chrom = chromosome[:]
-    ones_indices = [i for i, x in enumerate(chrom) if x == 1]
-    zeros_indices = [i for i, x in enumerate(chrom) if x == 0]
-    if ones_indices and zeros_indices:
-        one_idx = random.choice(ones_indices)
-        zero_idx = random.choice(zeros_indices)
-        chrom[one_idx], chrom[zero_idx] = 0, 1
-    return chrom
+def mutate(individual, mutation_rate=0.1):
+    if random.random() < mutation_rate:
+        ones = [i for i, b in enumerate(individual) if b == 1]
+        zeros = [i for i, b in enumerate(individual) if b == 0]
+        if ones and zeros:
+            i1 = random.choice(ones)
+            i0 = random.choice(zeros)
+            individual[i1], individual[i0] = 0, 1
+
+    return individual
 
 
-def geneticAlgorithm(exposure_values, pop_size=6, generations=10, ones_count=5):
-    chrom_length = len(exposure_values)
-    population = initPopulation(pop_size, chrom_length, ones_count)
+def genetic_algorithm(exposures, pop_size=10, generations=20):
+    population = create_initial_population(pop_size, len(exposures), 5)
+    for gen in range(1, generations+1):
+        new_pop = []
+        elite = max(population, key=lambda ind: calculate_fitness(ind, exposures))
+        new_pop.append(elite)
+        while len(new_pop) < pop_size:
+            p1 = tournament_selection(population, exposures)
+            p2 = tournament_selection(population, exposures)
+            while p2 == p1:
+                p2 = tournament_selection(population, exposures)
 
-    for _ in range(generations):
-        new_population = []
-        best_chrom = max(population, key=lambda chrom: fitness(chrom, exposure_values))
-        new_population.append(best_chrom)
+            c1, c2 = crossover(p1, p2)
+            new_pop.append(mutate(c1))
+            if len(new_pop) < pop_size:
+                new_pop.append(mutate(c2))
 
-        while len(new_population) < pop_size:
-            parent1 = tournamentSelection(population, exposure_values)
-            parent2 = tournamentSelection(population, exposure_values)
-            child1, child2 = singlePointCrossover(parent1, parent2, ones_count)
+        population = new_pop
 
-            if random.random() < 0.1:
-                child1 = mutation(child1, ones_count)
-                child2 = mutation(child2, ones_count)
-
-            new_population.extend([child1, child2])
-
-        population = new_population[:pop_size]
-
-    best_chrom = max(population, key=lambda chrom: fitness(chrom, exposure_values))
-    best_fitness = fitness(best_chrom, exposure_values)
-    return best_chrom, best_fitness
+    best = max(population, key=lambda ind: calculate_fitness(ind, exposures))
+    return best, calculate_fitness(best, exposures)
 
 
-def main() -> None:
-    exposure_values = [3, 7, 1, 6, 2, 8, 4, 5, 9, 10]
-    best_chromosome, best_fitness = geneticAlgorithm(exposure_values)
-    print(f"Best Chromosome: {best_chromosome}")
-    print(f"مجموع نوردهی: {best_fitness}")
+def main():
+    print("=== AstroBot Solar Panel Placement System ===")
+    exposures = [8.5, 2.3, 9.1, 4.2, 7.8, 3.1, 6.7, 9.8, 1.5, 5.4]
+    print("Exposure list:", exposures)
+    best_sol, best_fit = genetic_algorithm(exposures)
+    print("\n--- Best Solution ---")
+    print("Binary genome:", best_sol)
+    print(f"Total exposure: {best_fit:.2f}")
 
 
 if __name__ == "__main__":

@@ -1,90 +1,159 @@
-import random
-import copy
+import sys
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
+    QTableWidget, QTableWidgetItem, QPushButton, QLabel, QHeaderView
+)
+from PyQt5.QtCore import Qt
 
 
-def create_initial_population(pop_size, genome_length, n_ones):
-    population = []
-    for _ in range(pop_size):
-        individual = [0] * genome_length
-        ones_indices = random.sample(range(genome_length), n_ones)
-        for idx in ones_indices:
-            individual[idx] = 1
-        population.append(individual)
-    return population
+def isValidAssignment(assignment, task, time_slot, subsystems, power_needs, power_limits):
+    if (time_slot in assignment.values()) or power_needs[task] > power_limits[time_slot - 1]:
+        return False
 
 
-def calculate_fitness(individual, exposures):
-    return sum(bit * exposures[i] for i, bit in enumerate(individual))
+    current_subsystem = subsystems[task]
+    for adj_time in [time_slot - 1, time_slot + 1]:
+        if adj_time in assignment.values():
+            for t, slot in assignment.items():
+                if slot == adj_time and subsystems[t] == current_subsystem:
+                    return False
+    return True
 
 
-def tournament_selection(population, exposures, k=3):
-    contenders = random.sample(population, k)
-    return max(contenders, key=lambda ind: calculate_fitness(ind, exposures))
+def backtrack(assignment, tasks, subsystems, power_needs, power_limits):
+    if len(assignment) == len(tasks):
+        return assignment
+
+    for task in tasks:
+        if task not in assignment:
+            for time_slot in range(1, 6):
+                if isValidAssignment(assignment, task, time_slot, subsystems, power_needs, power_limits):
+                    assignment[task] = time_slot
+                    result = backtrack(assignment.copy(), tasks, subsystems, power_needs, power_limits)
+                    if result is not None:
+                        return result
+            break
+
+    return None
 
 
-def repair(child):
-    while sum(child) > n_ones:
-        i = random.choice([i for i, b in enumerate(child) if b == 1])
-        child[i] = 0
-    while sum(child) < n_ones:
-        i = random.choice([i for i, b in enumerate(child) if b == 0])
-        child[i] = 1
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("AstroBot Task Assignment System")
+        self.resize(800, 600)
+
+        # Central widget and layout
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        self.layout = QVBoxLayout(self.central_widget)
+
+        # Title
+        self.title_label = QLabel("Task Scheduler")
+        self.title_label.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(self.title_label)
+
+        # Input section
+        self.input_layout = QHBoxLayout()
+
+        # Tasks group
+        self.tasks_group = QGroupBox("Tasks")
+        self.tasks_table = QTableWidget()
+        self.tasks_table.setRowCount(5)
+        self.tasks_table.setColumnCount(3)
+        self.tasks_table.setHorizontalHeaderLabels(["Task", "Subsystem", "Power Need"])
+        self.tasks_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.tasks_table.verticalHeader().setVisible(False)
+
+        self.tasks = ('T1', 'T2', 'T3', 'T4', 'T5')
+        self.subsystems = {'T1': 'Navigation', 'T2': 'Sampling', 'T3': 'Communication', 'T4': 'Navigation', 'T5': 'Sampling'}
+        self.power_needs = {'T1': 5, 'T2': 4, 'T3': 6, 'T4': 7, 'T5': 3}
+
+        for i, task in enumerate(self.tasks):
+            self.tasks_table.setItem(i, 0, QTableWidgetItem(task))
+            self.tasks_table.setItem(i, 1, QTableWidgetItem(self.subsystems[task]))
+            self.tasks_table.setItem(i, 2, QTableWidgetItem(str(self.power_needs[task])))
+
+        self.tasks_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.tasks_group.setLayout(QVBoxLayout())
+        self.tasks_group.layout().addWidget(self.tasks_table)
+        self.input_layout.addWidget(self.tasks_group)
+
+        # Time slots group
+        self.time_slots_group = QGroupBox("Time Slots")
+        self.time_slots_table = QTableWidget()
+        self.time_slots_table.setRowCount(5)
+        self.time_slots_table.setColumnCount(2)
+        self.time_slots_table.setHorizontalHeaderLabels(["Time Slot", "Power Limit"])
+        self.time_slots_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.time_slots_table.verticalHeader().setVisible(False)
+
+        self.power_limits = (10, 6, 12, 8, 10)
+        for i in range(5):
+            self.time_slots_table.setItem(i, 0, QTableWidgetItem(str(i + 1)))
+            self.time_slots_table.setItem(i, 1, QTableWidgetItem(str(self.power_limits[i])))
+
+        self.time_slots_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.time_slots_group.setLayout(QVBoxLayout())
+        self.time_slots_group.layout().addWidget(self.time_slots_table)
+        self.input_layout.addWidget(self.time_slots_group)
+
+        self.layout.addLayout(self.input_layout)
+
+        # Find assignment button
+        self.find_button = QPushButton("Find Assignment")
+        self.find_button.clicked.connect(self.find_assignment)
+        self.layout.addWidget(self.find_button)
+
+        # Assignment group
+        self.assignment_group = QGroupBox("Assignment")
+        self.assignment_table = QTableWidget()
+        self.assignment_table.setRowCount(5)
+        self.assignment_table.setColumnCount(2)
+        self.assignment_table.setHorizontalHeaderLabels(["Task", "Time Slot"])
+        self.assignment_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.assignment_table.verticalHeader().setVisible(False)
+        self.assignment_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.assignment_group.setLayout(QVBoxLayout())
+        self.assignment_group.layout().addWidget(self.assignment_table)
+        self.layout.addWidget(self.assignment_group)
+        self.status_label = QLabel("")
+        self.layout.addWidget(self.status_label)
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #f0f0f0;
+            }
+            QLabel {
+                font-size: 16px;
+            }
+            QTableWidget {
+                background-color: white;
+                gridline-color: #d0d0d0;
+            }
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                padding: 5px;
+            }
+        """)
+
+    def find_assignment(self):
+        assignment = backtrack({}, self.tasks, self.subsystems, self.power_needs, self.power_limits)
+        if assignment:
+            self.status_label.setText("Assignment found")
+            for i, task in enumerate(sorted(assignment.keys())):
+                self.assignment_table.setItem(i, 0, QTableWidgetItem(task))
+                self.assignment_table.setItem(i, 1, QTableWidgetItem(str(assignment[task])))
+        else:
+            self.status_label.setText("No solution found")
+            self.assignment_table.clearContents()
 
 
-def crossover(parent1, parent2, n_ones=5):
-    length = len(parent1)
-    child1, child2 = copy.deepcopy(parent1), copy.deepcopy(parent2)
-    p1, p2 = sorted(random.sample(range(1, length-1), 2))
-    child1[p1:p2], child2[p1:p2] = parent2[p1:p2], parent1[p1:p2]
-    repair(child1)
-    repair(child2)
-    return child1, child2
-
-
-def mutate(individual, mutation_rate=0.1):
-    if random.random() < mutation_rate:
-        ones = [i for i, b in enumerate(individual) if b == 1]
-        zeros = [i for i, b in enumerate(individual) if b == 0]
-        if ones and zeros:
-            i1 = random.choice(ones)
-            i0 = random.choice(zeros)
-            individual[i1], individual[i0] = 0, 1
-    return individual
-
-
-def genetic_algorithm(exposures, pop_size=10, generations=20):
-    population = create_initial_population(pop_size, len(exposures), 5)
-
-    for gen in range(1, generations+1):
-        new_pop = []
-        elite = max(population, key=lambda ind: calculate_fitness(ind, exposures))
-        new_pop.append(elite)
-        while len(new_pop) < pop_size:
-            p1 = tournament_selection(population, exposures)
-            p2 = tournament_selection(population, exposures)
-            while p2 == p1:
-                p2 = tournament_selection(population, exposures)
-
-            c1, c2 = crossover(p1, p2)
-            new_pop.append(mutate(c1))
-            if len(new_pop) < pop_size:
-                new_pop.append(mutate(c2))
-
-        population = new_pop
-
-    best = max(population, key=lambda ind: calculate_fitness(ind, exposures))
-    return best, calculate_fitness(best, exposures)
-
-
-def main():
-    print("=== GA Solar Panel Placement ===")
-    exposures = [8.5, 2.3, 9.1, 4.2, 7.8, 3.1, 6.7, 9.8, 1.5, 5.4]
-    print("Exposure list:", exposures)
-
-    best_sol, best_fit = genetic_algorithm(exposures)
-    print("\n--- Best Solution ---")
-    print("Binary genome:", best_sol)
-    print(f"Total exposure: {best_fit:.2f}")
+def main() -> None:
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec_())
 
 
 if __name__ == "__main__":
