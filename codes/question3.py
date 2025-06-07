@@ -1,8 +1,5 @@
 def isValidAssignment(assignment, task, time_slot, subsystems, power_needs, power_limits):
-    if time_slot in assignment.values():
-        return False
-
-    if power_needs[task] > power_limits[time_slot - 1]:
+    if (time_slot in assignment.values()) or power_needs[task] > power_limits[time_slot - 1]:
         return False
 
     current_subsystem = subsystems[task]

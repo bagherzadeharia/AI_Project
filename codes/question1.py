@@ -1,10 +1,8 @@
 from collections import deque
 
-def gridValidation(grid):
-    if len(grid) != 5:
-        return False
 
-    if any(len(row) != 5 for row in grid):
+def gridValidation(grid) -> bool:
+    if len(grid) != 5 or any(len(row) != 5 for row in grid):
         return False
 
     for row in grid:
@@ -14,7 +12,8 @@ def gridValidation(grid):
 
     return True
 
-def BFS_Algorithm(grid):
+
+def BFS_Algorithm(grid) -> list or str:
     if not gridValidation(grid):
         return "Invalid input. Grid must be 5x5 with only 0s and 1s."
 
@@ -42,8 +41,9 @@ def BFS_Algorithm(grid):
     
     return "No path exists to the destination."
 
+
 def main() -> None:
-    grid = [
+    grid: list[list[int]] = [
         [0, 0, 0, 1, 0],
         [1, 1, 0, 1, 0],
         [0, 0, 0, 1, 0],

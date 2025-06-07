@@ -3,12 +3,12 @@
 ***
 
 **Project Files**
-- Solution to each question ('codes' directory) in '.py' & '.ipynb' files
+- Python & Jupyter Notebook files for each question
 - Microsoft Word Document File (.docx) about this project
 - readme.md file for configurations & modules (This file)
 
-**Configurations**
-- Python: v3.13
+**Minimum Configurations**
+- Python: v3.12.6 or above
 
 **Used Libraries/Modules**
 - collections
