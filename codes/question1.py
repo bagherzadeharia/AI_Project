@@ -20,7 +20,7 @@ def BFS_Algorithm(grid) -> list or str:
     if grid[0][0] == 1 or grid[4][4] == 1:
         return "No path found. Start or end position is blocked."
     
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    directions: tuple = ((-1, 0), (1, 0), (0, -1), (0, 1))
     queue = deque()
     queue.append((0, 0, [(0, 0)]))
     visited = set()
@@ -52,7 +52,7 @@ def main() -> None:
     ]
 
     path = BFS_Algorithm(grid)
-    print("Path found:", path)
+    print("Result:", path)
 
 
 if __name__ == "__main__":
