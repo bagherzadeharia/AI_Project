@@ -18,7 +18,6 @@ There are 3 files for each part of this project:
 **Used Libraries/Modules/Packages:**
 - sys
 - copy
-- pillow
 - random
 - matplotlib
 - collections (deque)
