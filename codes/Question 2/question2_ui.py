@@ -98,6 +98,7 @@ def animate_fitness_curve(fitness_history):
 
     ani = FuncAnimation(fig, update, frames=len(fitness_history),
                         interval=400, repeat=False)
+    plt.grid(True)
     plt.show()
 
 
