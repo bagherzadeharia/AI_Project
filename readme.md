@@ -11,14 +11,6 @@ There are 3 files for each part of this project:
 - Visualization Code (Using 'matplotlib')
 - Jupyter Notebook File
 
-**Description:**
-
-Part 1 is about developing a pathfinder system for our robot, which we decided to use BFS Algorithm for it, since it's better in short paths and memory management than DFS Algorithm.
-
-Part 2 uses Genetic Algorithm to find the optimal solution to solar panel placement problem.
-
-Finally, Part 3 uses Backtracking Algorithm to assign tasks to subsystems of our robot.
-
 **Minimum Configurations:**
 - Python: v3.12.6 or above
 - Pip: v25.1.1
