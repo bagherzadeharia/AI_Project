@@ -26,6 +26,7 @@ Finally, Part 3 uses Backtracking Algorithm to assign tasks to subsystems of our
 **Used Libraries/Modules/Packages:**
 - sys
 - copy
+- pillow
 - random
 - matplotlib
 - collections (deque)
